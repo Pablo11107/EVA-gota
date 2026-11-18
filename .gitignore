@@ -1,0 +1,7 @@
+# Archivos del sistema.
+.DS_Store
+
+# Documentos y material de trabajo que no son parte del repositorio.
+*.pdf
+!docs/*.pdf
+*.zip

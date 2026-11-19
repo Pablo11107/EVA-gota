@@ -1,4 +1,4 @@
-"""La animación de la gota (gota/eva-gota.js) no puede cambiar lo que hace el bot.
+"""La animación de la gota (servidor-propio/web/eva-gota.js) no puede cambiar lo que hace el bot.
 
     python3 -m unittest discover -s tests -v
 
@@ -14,7 +14,8 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "scripts"))
 import verificar  # noqa: E402
 
-GOTA = (RAIZ / "gota" / "eva-gota.js").read_text(encoding="utf-8")
+GOTA = (RAIZ / "servidor-propio" / "web" / "eva-gota.js").read_text(encoding="utf-8")
+INCRUSTAR = (RAIZ / "servidor-propio" / "web" / "incrustar-eva.html").read_text(encoding="utf-8")
 HTML = (RAIZ / "index.html").read_text(encoding="utf-8")
 
 
@@ -32,14 +33,24 @@ class Gota(unittest.TestCase):
         self.assertEqual(claves, {"onOpen", "onClose"})
 
     def test_cargada_con_huella(self):
-        self.assertIn("import gota from './gota/eva-gota.js'", HTML)
-        self.assertIn('"./gota/eva-gota.js": "sha384-', HTML)
+        self.assertIn("import gota from './servidor-propio/web/eva-gota.js'", HTML)
+        self.assertIn('"./servidor-propio/web/eva-gota.js": "sha384-', HTML)
         self.assertIn("...gota(),", HTML)
         self.assertEqual(verificar.verificar_pagina(HTML), [])
 
     def test_huella_rota_bloqueada(self):
-        html = re.sub(r'("\./gota/eva-gota\.js": "sha384-)[^"]+', r"\1AAAA", HTML)
+        html = re.sub(r'("\./servidor-propio/web/eva-gota\.js": "sha384-)[^"]+', r"\1AAAA", HTML)
         self.assertTrue(any("eva-gota.js no coincide" in e for e in verificar.verificar_pagina(html)))
+
+    def test_el_bloque_de_emalsa_la_carga(self):
+        self.assertIn("import gota from '/js/eva-gota.js'", INCRUSTAR)
+        self.assertIn("...gota(),", INCRUSTAR)
+        self.assertIn('apiHost: "https://asistente.emalsa.es"', INCRUSTAR)
+
+    def test_sombreador_sin_texturas_ni_lectura_de_pantalla(self):
+        # Solo dibuja: no lee píxeles de la página ni carga imágenes.
+        for texto in ("readPixels", "texImage2D", "toDataURL", "getImageData", "drawImage"):
+            self.assertNotIn(texto, GOTA, texto)
 
     def test_respeta_reducir_movimiento(self):
         self.assertIn("prefers-reduced-motion: reduce", GOTA)

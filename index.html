@@ -5,7 +5,7 @@
 <!-- Seguridad. GitHub Pages no permite cabeceras propias, así que la política va
      aquí. Los scripts en línea se autorizan por su hash: si se cambia uno, ejecute
      `python3 scripts/verificar.py --actualizar-csp` o el navegador lo bloqueará. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-nRHRzrW1OzKRd8bFk0S7Ipbo6vzIPHzpSxyAzmRIAQE=' 'sha256-Jn018oIA5n8G+QVfBz/8bHEPspLWvFYo97qLH9zhwHU=' 'sha256-KJVFPqbclVB5AhF/M83qf0YejyfAha/BCW7FFUBO7mo=' 'sha256-kY0blrsNkJrrFsb/7ytsmQs47MVI1gAPj7LnF0sFGto='; style-src 'unsafe-inline' https://fonts.bunny.net; font-src 'self' https://fonts.bunny.net; img-src 'self' data: blob: https://typebot.io https://*.typebot.io; connect-src https://typebot.io https://*.typebot.io; media-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-3IFSvh52nVn6lnCkDy2KodPBiccmWMirIp5LSQmW8FE=' 'sha256-Jn018oIA5n8G+QVfBz/8bHEPspLWvFYo97qLH9zhwHU=' 'sha256-KJVFPqbclVB5AhF/M83qf0YejyfAha/BCW7FFUBO7mo=' 'sha256-sXiHGI6rb8mRvdwNSROOcfJh55CfqcQy3l2m6VfGavY='; style-src 'unsafe-inline' https://fonts.bunny.net; font-src 'self' https://fonts.bunny.net; img-src 'self' data: blob: https://typebot.io https://*.typebot.io; connect-src https://typebot.io https://*.typebot.io; media-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- La página es una demostración: que no la indexen los buscadores, para que nadie
      la confunda con un canal oficial. -->
@@ -18,7 +18,7 @@
   "integrity": {
     "./vendor/typebot-web.js": "sha384-+bO+9Ljj0q4+HoHgcp/sjAyJ59nBgkbZJrYC5WXQRypVh+OwJa/3281qHKiESjYJ",
     "./vendor/three.module.js": "sha384-61S/Nu32S3E5+n+KpCOTb2eRYps6fVKm+9Gz1QBvSePFthb46f063Aa/qe/lykFZ",
-    "./gota/eva-gota.js": "sha384-R02OzJ5Luz29QcvnRK9C3MkseM0O3CxQOP3PgbG3M0XtrmZhxX2L7aSUHJUm6iHY"
+    "./servidor-propio/web/eva-gota.js": "sha384-08cJP97K0/P4GTbfhQim4ee3o+VnO25QgvC9Bd+IlpIYAJYg9C1+sjid1CAOgsZv"
   }
 }
 </script>
@@ -1621,8 +1621,9 @@ try {
   // El asistente real, como burbuja flotante: tal cual quedaría en la web
   // de la empresa. Para apuntar a otra versión, cambie el identificador.
   import Typebot from './vendor/typebot-web.js'
-  // Al abrirla, la ventana cae como una gota (gota/eva-gota.js).
-  import gota from './gota/eva-gota.js'
+  // Al abrirla, cae una gota y la ventana aparece bajo el agua. Es el mismo archivo
+  // que se instala en emalsa.es con el servidor propio (servidor-propio/web/).
+  import gota from './servidor-propio/web/eva-gota.js'
 
   // El isotipo de EVA en blanco, para que el botón no sea un bocadillo genérico.
   const icono = 'data:image/svg+xml;utf8,' + encodeURIComponent(

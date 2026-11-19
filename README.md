@@ -1,57 +1,186 @@
 # EVA · versión «gota»
+Emalsa Virtual Assistant con una animación de apertura: al tocar la burbuja, una gota de agua cae
+desde lo alto de la pantalla, se derrama como una lámina de agua transparente que llena la forma
+de la ventana, y el chat aparece debajo mientras el agua se calma.
 
-Variante de la página de demostración de EVA en la que, al tocar la burbuja, la ventana del
-chat cae como una gota: una gota baja desde lo alto de la pantalla, salpica al llegar y la
-ventana se abre desde el punto del impacto, como una onda en el agua.
+Es una copia de [Pablo11107/EVA](https://github.com/Pablo11107/EVA), con el paquete del servidor
+propio, más la animación. El repositorio original no cambia.
 
-Publicada en GitHub Pages: https://pablo11107.github.io/EVA-gota/ (marcada `noindex`, como la
-original). La versión sin la gota sigue en [Pablo11107/EVA](https://github.com/Pablo11107/EVA),
-sin cambios. Es el mismo bot y la misma página; solo cambia cómo se abre la ventana.
+Publicada en GitHub Pages: https://pablo11107.github.io/EVA-gota/ (marcada `noindex`: es una demo, no un canal oficial).
 
-## Qué hay
+## La gota
 
-| Archivo | Qué es |
+| Ruta | Qué es |
 |---|---|
-| `gota/eva-gota.js` | La animación. Un archivo, sin dependencias |
-| `index.html` | La página de EVA, con la gota conectada a la burbuja |
-| `tests/test_gota.py` | Comprueba que la gota solo anima: sin red, sin datos, cargada con huella SRI |
-| El resto | Igual que en el repositorio original (verificador, pruebas, flujo, librerías) |
+| `servidor-propio/web/eva-gota.js` | La animación. Un archivo, sin dependencias, en WebGL |
+| `servidor-propio/web/incrustar-eva.html` | El bloque para emalsa.es, ya con la gota |
+| `tests/test_gota.py` | Comprueba que la gota solo anima: sin red ni datos, cargada con huella SRI |
 
-## Cómo funciona
+- **Óptica de una gota real**: esférica (la forma de lágrima es de dibujo animado), transparente,
+  con la luz invertida como en una lente, brillo especular, cáustica, borde oscuro por reflexión
+  interna y desenfoque de movimiento al caer. El agua derramada deja ver la página detrás, con su
+  menisco en el borde, gotitas despedidas y ondas que se ven por cómo concentran la luz.
+- **Dura** unos 2 segundos: la caída (0,4 a 0,65 s, según la pantalla) y 1,5 s de agua. El chat se
+  puede usar desde que aparece, a los 0,9 s del impacto.
+- **No toca el bot** ni lo que se envía: anima la ventana de la burbuja (la parte `bot` que Typebot
+  deja accesible) y un lienzo propio que se borra al terminar.
+- **Si no puede**, no estorba: sin WebGL, la ventana aparece bajo el agua sin la gota; con «reducir
+  movimiento» activado, o si una versión futura de la burbuja cambia por dentro, se abre como siempre.
+- **Rendimiento**: 60 fotogramas por segundo en escritorio y en móvil (medido en Chrome, también
+  con la CPU frenada cuatro veces). El sombreador se compila en un momento libre tras cargar la
+  página, no al tocar la burbuja.
 
-- No toca el bot ni lo que se envía. Anima la ventana de la burbuja (la parte `bot` que Typebot
-  deja accesible) y una capa propia por encima de la página que se borra al terminar.
-- Dura algo más de un segundo: la caída (0,4 a 0,7 s según la altura de la pantalla) y la
-  apertura (0,76 s). Con la ventana ya abierta no se repite; si se cierra a medias, no deja rastro.
-- Si el sistema pide reducir el movimiento, o el navegador no admite animaciones web, o una
-  versión futura de la burbuja cambia por dentro, la ventana se abre como siempre.
-- Se carga como las demás librerías: desde el propio servidor, con huella SRI en el importmap
-  y autorizada por la CSP. `scripts/verificar.py` falla si el archivo cambia sin actualizar la huella.
+**La demo usa todavía la nube de Typebot** (por eso aparece «Made with Typebot»): el visor de la
+empresa aún no existe. Cuando esté en marcha, `servidor-propio/scripts/apuntar-web.py` apunta la
+página a él, como en el repositorio original; la gota no cambia.
 
-## Llevarla a emalsa.es
+Tras editar `eva-gota.js` hay que actualizar su huella en el importmap de `index.html`
+(`openssl dgst -sha384 -binary servidor-propio/web/eva-gota.js | openssl base64 -A`) y después
+`python3 scripts/verificar.py --actualizar-csp`.
 
-Funciona igual con la nube de Typebot que con el servidor propio. Copiar `gota/eva-gota.js`
-junto a `typebot-web.js` y añadir dos líneas al bloque de la burbuja:
+## Qué hay en el repositorio
 
-```js
-import Typebot from '/js/typebot-web.js'
-import gota from '/js/eva-gota.js'
+| Ruta | Qué es |
+|---|---|
+| `index.html` | La página completa: HTML, CSS y JavaScript sin paso de compilación |
+| `vendor/three.module.js` | three.js 0.160.0, para la escena 3D. Si no carga, la página sigue funcionando |
+| `vendor/typebot-web.js` | `@typebot.io/js` 0.10.11, la burbuja del asistente |
+| `vendor/fonts/` | Fuente Outfit (licencia OFL, en `OFL.txt`) |
+| `flujo/eva-chatbot.json` | Exportación del flujo de Typebot que está publicado |
+| `docs/informe-seguridad-eva.pdf` | Informe de seguridad, enlazado desde la sección «Seguridad» |
+| `media/recorrido-eva.mp4` | Vídeo del recorrido (grabado con el bot real) y su portada |
+| `scripts/verificar.py` | Comprobaciones de seguridad (ver más abajo) |
+| `tests/` | Pruebas de seguridad de IA: sin conexión (CI) y contra el bot real |
+| `servidor-propio/` | Paquete para alojar Typebot en un servidor de la empresa, con su revisión de seguridad y la gota |
+| `.github/workflows/verificar.yml` | Ejecuta el verificador y las pruebas en cada push |
 
-Typebot.initBubble({
-  typebot: "eva",
-  ...gota(),
-  // apiHost, theme, previewMessage: como estaban
-});
+Las librerías y la fuente se sirven desde el propio sitio: la página no depende de ningún CDN
+ni envía la IP de los visitantes a Google. No hay base de datos ni servidor propio. Las cifras
+de la sección de analíticas son de ejemplo.
+
+## El asistente
+
+El flujo se edita y publica en [Typebot](https://typebot.io). La página solo lo incrusta con
+su identificador (`eva-asistente-virtual-de-emalsa-oi2fy0m`).
+
+Lo que dice EVA cambia en cuanto se publica en Typebot, sin pasar por este repositorio. Por eso
+cada versión del flujo debe guardarse aquí y pasar el verificador **antes** de publicarla:
+
+1. En Typebot: *Share → Export* y guardar el JSON como `flujo/eva-chatbot.json`.
+2. `python3 scripts/verificar.py && python3 -m unittest discover -s tests`
+3. Revisar el diff, hacer commit y, solo entonces, publicar en Typebot.
+4. Tras publicar: `EVA_PRUEBAS_EN_VIVO=1 python3 -m unittest tests.test_en_vivo -v`, que comprueba
+   que lo publicado es exactamente lo revisado.
+
+El bot solo acepta peticiones de los orígenes permitidos en Typebot (`pablo11107.github.io`,
+`emalsa.es` y `www.emalsa.es`). Si se abre la página en local, responde «Origin not allowed»
+(403). Esa lista solo la comprueban los navegadores: un script puede saltársela, así que
+**no sirve como control de acceso** y las métricas pueden incluir conversaciones automatizadas.
+
+## Seguridad
+
+GitHub Pages no permite cabeceras propias, así que la Content-Security-Policy va en una
+etiqueta `<meta>` al principio de `index.html`. Solo permite scripts del propio sitio y los
+scripts en línea autorizados por su hash, y solo conecta con Typebot.
+
+`scripts/verificar.py` (solo biblioteca estándar de Python) comprueba:
+
+- que la CSP autoriza exactamente los scripts en línea de la página;
+- que las librerías de `vendor/` coinciden con su huella SRI del `importmap`;
+- que el flujo solo tiene bloques de texto, botones y redirecciones (nada de webhooks, IA, campos
+  de texto ni scripts), sin variables, con *Remember user* desactivado y orígenes permitidos acotados;
+- que los botones «Llamar» solo llaman a los teléfonos oficiales, que «Rellenar formulario» y
+  «Escribir por formulario» dan un enlace a `https://emalsa.es` (no abren pestañas por su cuenta,
+  que Safari bloquea) y que cada trámite enlaza el mismo formulario que indica por escrito;
+- que las cifras de la portada (pantallas, mensajes, trámites) coinciden con el flujo;
+- que todos los enlaces del flujo van a `https://emalsa.es` y que solo aparecen los teléfonos
+  oficiales (928 926 033 y 928 010 334).
+
+Si se modifica un `<script>` en línea, hay que recalcular la CSP o el navegador lo bloqueará:
+
+```sh
+python3 scripts/verificar.py --actualizar-csp
 ```
 
-## Después de cambiar la gota
+Para cambiar la versión de una librería: sustituir el fichero en `vendor/` y actualizar su huella
+en el `importmap` (`openssl dgst -sha384 -binary vendor/<fichero> | base64`).
 
-La huella SRI y la CSP dependen del contenido. Tras editar `gota/eva-gota.js`, actualizar la huella
-de `"./gota/eva-gota.js"` en el importmap de `index.html` y después:
+Para añadir algo nuevo al flujo (un dominio, un teléfono, un tipo de bloque), se amplían las
+listas al principio de `scripts/verificar.py` en un commit aparte que se pueda revisar.
 
-    python3 scripts/verificar.py --actualizar-csp
-    python3 -m unittest discover -s tests -v
+### Seguridad de IA
 
-La huella se calcula con:
+EVA no usa ningún modelo de lenguaje: es un árbol de botones con respuestas escritas y revisadas.
+No hay prompt de sistema, ni RAG, ni texto libre, ni datos del usuario guardados en variables.
+La protección contra inyección de prompt, jailbreak y mezcla de datos entre usuarios es esa
+estructura, y el verificador impide que cambie sin revisión: rechaza cualquier bloque que no sea
+de texto, de botones o una redirección a emalsa.es o a un teléfono oficial (IA, campos de texto,
+webhooks, código), las variables, la precarga por URL
+y *Remember user*.
 
-    openssl dgst -sha384 -binary gota/eva-gota.js | openssl base64 -A
+- `tests/test_seguridad_ia.py` (sin conexión, en CI): introduce cada vulnerabilidad en una copia
+  del flujo o de la página y demuestra que el verificador la bloquea.
+- `tests/test_en_vivo.py` (manual, abre unas trece conversaciones reales): ataca al bot publicado
+  con inyecciones directas, disfrazadas de opción válida, con caracteres invisibles, HTML, falsos
+  turnos de conversación y variables inyectadas; comprueba que el bot solo responde con contenido
+  idéntico al del flujo revisado y que una sesión no puede leer ni reanudar otra.
+
+Si algún día se añade la opción de escribir la consulta con sus palabras, el modelo debe limitarse
+a devolver un identificador de una lista cerrada, validado en el servidor antes de seguir el flujo.
+Nunca debe redactar la respuesta ni recibir datos de otras sesiones. Esas pruebas tendrán que
+ampliarse antes de publicarlo.
+
+## Servidor propio
+
+La empresa ha decidido alojar EVA en su propio servidor. El paquete está en
+[`servidor-propio/`](servidor-propio/README.md): Docker Compose con las imágenes fijadas por
+huella, proxy con TLS y cabeceras, scripts de secretos, copias y plazo de conservación, el flujo
+preparado para importarlo y una batería de ataques (`pruebas/atacar.py`) para ejecutar contra el
+servidor antes de abrirlo al público. Los hallazgos y lo que hace el paquete con cada uno están
+en [`servidor-propio/REVISION-SEGURIDAD.md`](servidor-propio/REVISION-SEGURIDAD.md).
+
+Mientras el servidor no esté en marcha, la página de demostración sigue usando la nube de
+Typebot. Cuando lo esté: `python3 servidor-propio/scripts/apuntar-web.py --visor https://asistente.emalsa.es`.
+
+## Instalarlo en emalsa.es (con la nube de Typebot)
+
+Con el servidor propio, el bloque a pegar es `servidor-propio/web/incrustar-eva.html`. Con la nube,
+el bot ya admite `emalsa.es` y `www.emalsa.es` como orígenes. Basta con copiar a la web
+`vendor/typebot-web.js` y añadir antes de `</body>`, en las páginas donde deba aparecer:
+
+```html
+<script type="module">
+  import Typebot from '/ruta/a/typebot-web.js'
+  Typebot.initBubble({
+    typebot: "eva-asistente-virtual-de-emalsa-oi2fy0m",
+    theme: { button: { backgroundColor: "#214881" }, chatWindow: { backgroundColor: "#FFFFFF" } },
+  });
+</script>
+```
+
+Si la web tiene Content-Security-Policy, debe permitir como mínimo:
+`connect-src https://typebot.io https://*.typebot.io`,
+`img-src https://typebot.io https://*.typebot.io data:`,
+`style-src 'unsafe-inline' https://fonts.bunny.net` y `font-src https://fonts.bunny.net`.
+
+## Traspaso a la empresa
+
+Hoy el bot está en una cuenta personal de Typebot y esta página en una cuenta personal de GitHub.
+Antes de ponerlo en producción hay que decidir:
+
+- **Plan de Typebot.** El plan gratuito muestra «Made with Typebot» y limita las conversaciones
+  mensuales. Un plan de pago quita la marca, amplía el cupo y permite alertas de uso.
+- **Titularidad.** Pasar el bot a un espacio de trabajo de la empresa (o añadirla como miembro)
+  y decidir quién puede publicar cambios.
+- **Protección de datos.** Typebot guarda cada conversación (botones pulsados, fecha y si se
+  completó) y declara tratar datos técnicos limitados para operar el servicio. El bot no deja
+  cookies ni guarda nada en el navegador. Hace falta su contrato de encargado de tratamiento y
+  fijar cuánto tiempo se conservan los resultados.
+
+### Pendiente fuera del repositorio
+
+- **Typebot:** activar la verificación en dos pasos, dejar en el espacio de trabajo solo a quien
+  necesite editar, configurar alertas de uso y revisar el tiempo de conservación de resultados.
+- **GitHub:** verificación en dos pasos en la cuenta que publica la página.
+- **Al pasar a emalsa.es:** enviar la CSP como cabecera HTTP, con `frame-ancestors 'self'` para
+  impedir que otra web incruste la página (en GitHub Pages no es posible).
